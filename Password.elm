@@ -1,6 +1,6 @@
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onSubmit, onClick)
 import String exposing (..)
 --import Regex exposing (..)
 import Regex
@@ -17,41 +17,42 @@ type alias Model =
         age: String,
         name: String,
         password: String,
-        passwordAgain: String
+        passwordAgain: String,
+        validate : Bool
     }
 
 model: Model
-model = Model "" "" "" ""
+model = Model "" "" "" "" False
 
 type Msg =
     Age String |
     Name String |
     Password String |
-    PasswordAgain String
+    PasswordAgain String |
+    Validate
 
-toInt intAsString = 
-    let
-        resultOfInt = ParseInt.parseInt intAsString 
-    in
-        case resultOfInt of
-            Ok intValue -> intValue
-            Err msg -> -1
 
 update: Msg -> Model -> Model
-update msg model = 
-    case msg of 
-        Age age ->
-            { model | age = age }
+update msg model =
+    let
+        _ = Debug.log "#####" model
+    in    
+        case msg of 
+            Age age ->
+                { model | age = age, validate = False }
 
-        Name name -> 
-            { model | name = name }
+            Name name -> 
+                { model | name = name, validate = False }
 
-        Password password ->
-            { model | password = password }
+            Password password ->
+                { model | password = password, validate = False }
 
-        PasswordAgain password ->
-            { model | passwordAgain = password }
-    
+            PasswordAgain password ->
+                { model | passwordAgain = password, validate = False }
+
+            Validate ->
+                { model | validate = True }
+        
 view: Model -> Html Msg
 view model =
     div [] [
@@ -60,7 +61,8 @@ view model =
         input [ type_ "text", placeholder "Age", onInput Age ] [],
         input [ type_ "password", placeholder "Password", onInput Password] [],
         input [ type_ "password", placeholder "Re-enter Password", onInput PasswordAgain] [],
-        viewValidationModel model
+        input [ type_ "submit", onClick Validate] [ text "Send" ],
+        if model.validate then viewValidationModel model else text ""
     ]
 
 checkPasswordTyping: Result.Result String Model -> Result.Result String Model
