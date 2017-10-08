@@ -13,12 +13,13 @@ main = Html.program {
  }
 
 type alias Model = {
-    dieFace: Int
+    dieFace: Int,
+    dieFace2: Int
  }
 
 init: (Model, Cmd Msg)
 init = 
-    (Model 1, Cmd.none)
+    (Model 1 1, Cmd.none)
 
 dice: Int -> Html Msg
 dice num =
@@ -70,13 +71,15 @@ view model =
     div [] [
         h1 [] [ text "Würfel" ],
         dice model.dieFace,
+        dice model.dieFace2,
         br [] [],  
         button [onClick Roll] [text "Roll"]
     ]
 
 type Msg = 
     Roll |
-    NewFace Int
+    NewFace Int |
+    NewFace2 Int
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -85,10 +88,13 @@ update msg model =
     in
         case msg of
             Roll ->
-                (model, Random.generate NewFace (Random.int 1 6))
+                (model, Cmd.batch [Random.generate NewFace (Random.int 1 6), Random.generate NewFace2 (Random.int 1 6)])
 
             NewFace newFace ->
-                (Model newFace, Cmd.none)
+                ({model | dieFace = newFace}, Cmd.none)
+
+            NewFace2 newFace ->
+                ({model | dieFace2 = newFace}, Cmd.none)
 
 subscriptions: Model -> Sub Msg
 subscriptions model = Sub.none
