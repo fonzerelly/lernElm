@@ -1,6 +1,6 @@
 import Html exposing (..)
-import Html.Events exposing (onClick)
-import Html.Attributes exposing (src)
+import Html.Events exposing (onClick, onInput, on)
+import Html.Attributes exposing (src, selected, value, style)
 import Http
 import Json.Decode as Decode
 
@@ -17,12 +17,14 @@ main =
 type alias Model =
     { 
         topic: String,
-        gifUrl: String
+        gifUrl: String,
+        err: String
     }
 
 
 type Msg = 
     MorePlease |
+    UpdateTopic String |
     NewGif (Result Http.Error String)
 
 
@@ -33,10 +35,13 @@ update msg model =
             (model, getRandomGif model.topic)
 
         NewGif (Ok newUrl) ->
-            ({ model | gifUrl = newUrl }, Cmd.none)
+            ({ model | err = "", gifUrl = newUrl }, Cmd.none)
 
-        NewGif (Err _) ->
-            (model, Cmd.none)
+        NewGif (Err error) ->
+            ({model | err = (toString error)}, Cmd.none)
+
+        UpdateTopic topic ->
+            ({ model | topic = topic }, getRandomGif model.topic)
 
 getRandomGif: String -> Cmd Msg
 getRandomGif topic =
@@ -54,8 +59,15 @@ view : Model -> Html Msg
 view model =
     div [] [
         h1 [] [text "Giffy"],
-        h2 [] [text model.topic],
-        img [ src model.gifUrl] [],
+--        select [onInput UpdateTopic ] [
+--            option [] [text "cats"],
+--            option [] [text "dogs"],
+--            option [] [text "birds"],
+--            option [] [text "mice"],
+--            option [] [text "elefants"]
+--        ],
+        input [ onInput UpdateTopic ] [text model.topic],
+        if model.err == "" then img [ src model.gifUrl] [] else span [style [("color", "red")]] [text model.err],
         br [] [],
         button [ onClick MorePlease ] [ text "More Please!"]
     ]
@@ -68,4 +80,4 @@ subscriptions model =
 
 init : (Model, Cmd Msg)
 init = 
-    (Model "cats" "waiting.gif" , Cmd.none)
+    (Model "cats" "waiting.gif" "", Cmd.none)
